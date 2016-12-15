@@ -1,6 +1,7 @@
 #![crate_name = "number_prefix"]
 #![crate_type = "rlib"]
 #![crate_type = "dylib"]
+#![no_std]
 
 //! This is a library for formatting numbers with numeric prefixes, such as
 //! turning “3000 metres” into “3 kilometres”, or “8705 bytes” into “8.5 KiB”.
@@ -92,11 +93,11 @@
 
 extern crate num_traits;
 use num_traits::{Float, Signed};
-use std::fmt;
+use core::fmt;
 
 pub use Prefix::{
-	Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta,
-	Kibi, Mibi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi,
+    Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta,
+    Kibi, Mibi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi,
 };
 
 pub use Result::{Standalone, Prefixed};
@@ -106,7 +107,7 @@ pub use Result::{Standalone, Prefixed};
 /// than just the short-hand symbols.
 pub trait PrefixNames {
 
-	/// Returns the name in uppercase, such as “KILO”.
+    /// Returns the name in uppercase, such as “KILO”.
     fn upper(&self) -> &'static str;
 
     /// Returns the name with the first letter capitalised, such as “Mega”.
@@ -132,7 +133,7 @@ pub enum Prefix {
 /// This function accepts both `f32` and `f64` values. If you’re trying to
 /// format an integer, you’ll have to cast it first.
 pub fn decimal_prefix<F: Amounts>(amount: F) -> Result<F> {
-	format_number(amount, Amounts::get_1000(), [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta])
+    format_number(amount, Amounts::get_1000(), [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta])
 }
 
 /// Formats the given floating-point number using **binary** prefixes,
@@ -141,13 +142,13 @@ pub fn decimal_prefix<F: Amounts>(amount: F) -> Result<F> {
 /// This function accepts both `f32` and `f64` values. If you’re trying to
 /// format an integer, you’ll have to cast it first.
 pub fn binary_prefix<F: Amounts>(amount: F) -> Result<F> {
-	format_number(amount, Amounts::get_1024(), [Kibi, Mibi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi])
+    format_number(amount, Amounts::get_1024(), [Kibi, Mibi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi])
 }
 
 impl fmt::Display for Prefix {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "{}", self.symbol())
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.symbol())
+    }
 }
 
 impl PrefixNames for Prefix {
@@ -192,9 +193,9 @@ impl PrefixNames for Prefix {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Result<F> {
 
-	/// A **standalone** value is returned when the number is too small to
-	/// have any prefixes applied to it. This is commonly a special case, so
-	/// is handled separately.
+    /// A **standalone** value is returned when the number is too small to
+    /// have any prefixes applied to it. This is commonly a special case, so
+    /// is handled separately.
     Standalone(F),
 
     /// A **prefixed** value *is* large enough for prefixes. This holds the
@@ -207,7 +208,7 @@ where F: Float + Signed {
 
     // For negative numbers, flip it to positive, do the processing, then
     // flip it back to negative again afterwards.
-	let was_negative = if amount.is_negative() { amount = -amount; true } else { false };
+    let was_negative = if amount.is_negative() { amount = -amount; true } else { false };
 
     let mut prefix = 0;
     while amount >= kilo && prefix < 8 {
@@ -216,7 +217,7 @@ where F: Float + Signed {
     }
 
     if was_negative {
-    	amount = -amount;
+        amount = -amount;
     }
 
     if prefix == 0 {
@@ -249,10 +250,10 @@ mod test {
     use super::Result::{Standalone, Prefixed};
     use super::Prefix::{Kilo, Giga, Tera, Peta, Exa, Zetta, Yotta, Kibi, Mibi, Gibi};
 
-	#[test]
-	fn decimal_minus_one_billion() {
-	    assert_eq!(decimal_prefix(-1_000_000_000_f64), Prefixed(Giga, -1f64))
-	}
+    #[test]
+    fn decimal_minus_one_billion() {
+        assert_eq!(decimal_prefix(-1_000_000_000_f64), Prefixed(Giga, -1f64))
+    }
 
     #[test]
     fn decimal_minus_one() {
@@ -306,68 +307,68 @@ mod test {
 
     #[test]
     fn giga() {
-    	assert_eq!(decimal_prefix(1_000_000_000f64), Prefixed(Giga, 1f64))
+        assert_eq!(decimal_prefix(1_000_000_000f64), Prefixed(Giga, 1f64))
     }
 
     #[test]
     fn tera() {
-    	assert_eq!(decimal_prefix(1_000_000_000_000f64), Prefixed(Tera, 1f64))
+        assert_eq!(decimal_prefix(1_000_000_000_000f64), Prefixed(Tera, 1f64))
     }
 
     #[test]
     fn peta() {
-    	assert_eq!(decimal_prefix(1_000_000_000_000_000f64), Prefixed(Peta, 1f64))
+        assert_eq!(decimal_prefix(1_000_000_000_000_000f64), Prefixed(Peta, 1f64))
     }
 
     #[test]
     fn exa() {
-    	assert_eq!(decimal_prefix(1_000_000_000_000_000_000f64), Prefixed(Exa, 1f64))
+        assert_eq!(decimal_prefix(1_000_000_000_000_000_000f64), Prefixed(Exa, 1f64))
     }
 
     #[test]
     fn zetta() {
-    	assert_eq!(decimal_prefix(1_000_000_000_000_000_000_000f64), Prefixed(Zetta, 1f64))
+        assert_eq!(decimal_prefix(1_000_000_000_000_000_000_000f64), Prefixed(Zetta, 1f64))
     }
 
     #[test]
     fn yotta() {
-    	assert_eq!(decimal_prefix(1_000_000_000_000_000_000_000_000f64), Prefixed(Yotta, 1f64))
+        assert_eq!(decimal_prefix(1_000_000_000_000_000_000_000_000f64), Prefixed(Yotta, 1f64))
     }
 
     #[test]
     #[allow(overflowing_literals)]
     fn and_so_on() {
-    	// When you hit yotta, don't keep going
-		assert_eq!(decimal_prefix(1_000_000_000_000_000_000_000_000_000f64), Prefixed(Yotta, 1000f64))
+        // When you hit yotta, don't keep going
+        assert_eq!(decimal_prefix(1_000_000_000_000_000_000_000_000_000f64), Prefixed(Yotta, 1000f64))
     }
 
     #[test]
     fn example_one() {
-		let result = match decimal_prefix(8542_f32) {
-			Standalone(bytes)   => format!("The file is {} bytes in size", bytes),
-			Prefixed(prefix, n) => format!("The file is {:.1} {}B in size", n, prefix),
-		};
+        let result = match decimal_prefix(8542_f32) {
+            Standalone(bytes)   => format!("The file is {} bytes in size", bytes),
+            Prefixed(prefix, n) => format!("The file is {:.1} {}B in size", n, prefix),
+        };
 
-		assert_eq!(result, "The file is 8.5 kB in size");
+        assert_eq!(result, "The file is 8.5 kB in size");
     }
 
     #[test]
     fn example_two() {
-		let result = match decimal_prefix(705_f32) {
-			Standalone(bytes)   => format!("The file is {} bytes in size", bytes),
-			Prefixed(prefix, n) => format!("The file is {:.1} {}B in size", n, prefix),
-		};
+        let result = match decimal_prefix(705_f32) {
+            Standalone(bytes)   => format!("The file is {} bytes in size", bytes),
+            Prefixed(prefix, n) => format!("The file is {:.1} {}B in size", n, prefix),
+        };
 
-		assert_eq!(result, "The file is 705 bytes in size");
+        assert_eq!(result, "The file is 705 bytes in size");
     }
 
-	#[test]
+    #[test]
     fn example_three() {
-		let result = match binary_prefix(8542_f32) {
-			Standalone(bytes)   => format!("The file is {} bytes in size", bytes),
-			Prefixed(prefix, n) => format!("The file is {:.1} {}B in size", n, prefix),
-		};
+        let result = match binary_prefix(8542_f32) {
+            Standalone(bytes)   => format!("The file is {} bytes in size", bytes),
+            Prefixed(prefix, n) => format!("The file is {:.1} {}B in size", n, prefix),
+        };
 
-		assert_eq!(result, "The file is 8.3 KiB in size");
+        assert_eq!(result, "The file is 8.3 KiB in size");
     }
 }
